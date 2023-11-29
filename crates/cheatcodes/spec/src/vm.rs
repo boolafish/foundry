@@ -279,6 +279,13 @@ interface Vm {
         external
         returns (bool found, bytes32 key, bytes32 parent);
 
+    // -------- Record OP Codes --------
+
+    /// simply says hi
+    #[cheatcode(group = Evm, safety = Safe)]
+    function greeting() external returns (string memory);
+
+
     // -------- Block and Transaction Properties --------
 
     /// Sets `block.chainid`.

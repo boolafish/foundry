@@ -126,6 +126,13 @@ impl Cheatcode for recordLogsCall {
     }
 }
 
+impl Cheatcode for greetingCall {
+    fn apply(&self, state: &mut Cheatcodes) -> Result {
+        let Self {} = self;
+        Ok("hello world".abi_encode())
+    }
+}
+
 impl Cheatcode for getRecordedLogsCall {
     fn apply(&self, state: &mut Cheatcodes) -> Result {
         let Self {} = self;

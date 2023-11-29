@@ -2299,6 +2299,26 @@
     },
     {
       "func": {
+        "id": "greeting",
+        "description": "simply says hi",
+        "declaration": "function greeting() external returns (string memory);",
+        "visibility": "external",
+        "mutability": "",
+        "signature": "greeting()",
+        "selector": "0xef690cc0",
+        "selectorBytes": [
+          239,
+          105,
+          12,
+          192
+        ]
+      },
+      "group": "evm",
+      "status": "stable",
+      "safety": "safe"
+    },
+    {
+      "func": {
         "id": "isDir",
         "description": "Returns true if the path exists on disk and is pointing at a directory, else returns false.",
         "declaration": "function isDir(string calldata path) external returns (bool result);",
