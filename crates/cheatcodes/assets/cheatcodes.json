@@ -4259,6 +4259,26 @@
     },
     {
       "func": {
+        "id": "startOpcodeRecording",
+        "description": "Records all opcodes during the run.",
+        "declaration": "function startOpcodeRecording() external;",
+        "visibility": "external",
+        "mutability": "",
+        "signature": "startOpcodeRecording()",
+        "selector": "0xa31271b1",
+        "selectorBytes": [
+          163,
+          18,
+          113,
+          177
+        ]
+      },
+      "group": "evm",
+      "status": "stable",
+      "safety": "safe"
+    },
+    {
+      "func": {
         "id": "startPrank_0",
         "description": "Sets all subsequent calls' `msg.sender` to be the input address until `stopPrank` is called.",
         "declaration": "function startPrank(address msgSender) external;",
@@ -4311,6 +4331,26 @@
           34,
           227,
           201
+        ]
+      },
+      "group": "evm",
+      "status": "stable",
+      "safety": "safe"
+    },
+    {
+      "func": {
+        "id": "stopAndReturnOpcodeRecording",
+        "description": "Returns the recorded opcodes during the run",
+        "declaration": "function stopAndReturnOpcodeRecording() external returns (OpcodeAccess[] memory opcodes);",
+        "visibility": "external",
+        "mutability": "",
+        "signature": "stopAndReturnOpcodeRecording()",
+        "selector": "0x1d3188f6",
+        "selectorBytes": [
+          29,
+          49,
+          136,
+          246
         ]
       },
       "group": "evm",

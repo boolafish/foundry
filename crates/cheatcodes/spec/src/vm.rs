@@ -213,6 +213,12 @@ interface Vm {
         bool reverted;
     }
 
+    /// The result of the `stopAndReturnOpcodeRecording` call
+    struct OpcodeAccess {
+        /// The opcode that was accessed
+        uint8 opcode;
+    }
+
     // ======== EVM ========
 
     /// Gets the address for a given private key.
@@ -234,6 +240,17 @@ interface Vm {
     /// Signs data.
     #[cheatcode(group = Evm, safety = Safe)]
     function sign(uint256 privateKey, bytes32 digest) external pure returns (uint8 v, bytes32 r, bytes32 s);
+
+    // -------- Record Opcodes --------
+
+    /// Records all opcodes during the run.
+    #[cheatcode(group = Evm, safety = Safe)]
+    function startOpcodeRecording() external;
+
+    /// Returns the recorded opcodes during the run
+    #[cheatcode(group = Evm, safety = Safe)]
+    function stopAndReturnOpcodeRecording() external returns (OpcodeAccess[] memory opcodes);
+
 
     // -------- Record Storage --------
 

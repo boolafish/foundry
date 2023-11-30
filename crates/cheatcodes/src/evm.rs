@@ -355,6 +355,32 @@ impl Cheatcode for stopAndReturnStateDiffCall {
     }
 }
 
+
+impl Cheatcode for startOpcodeRecordingCall {
+    fn apply(&self, state: &mut Cheatcodes) -> Result {
+        let Self {} = self;
+        state.recorded_opcodes = Some(Default::default());
+        Ok(Default::default())
+    }
+}
+
+impl Cheatcode for stopAndReturnOpcodeRecordingCall {
+    fn apply(&self, state: &mut Cheatcodes) -> Result {
+        let Self {} = self;
+        // Ok(Default::default())
+        let res = state
+            .recorded_opcodes
+            .replace(Default::default())
+            .unwrap_or_default()
+            .into_iter()
+            .map(|record| record.access)
+            .collect::<Vec<_>>();
+        Ok(res.abi_encode())
+        // Ok(state.recorded_opcodes.replace(Default::default()).unwrap_or_default())
+    }
+}
+
+
 pub(super) fn get_nonce<DB: DatabaseExt>(ccx: &mut CheatsCtxt<DB>, address: &Address) -> Result {
     super::script::correct_sender_nonce(ccx)?;
     let (account, _) = ccx.data.journaled_state.load_account(*address, ccx.data.db)?;

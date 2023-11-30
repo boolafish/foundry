@@ -94,6 +94,14 @@ pub struct AccountAccess {
     pub depth: u64,
 }
 
+#[derive(Debug, Clone)]
+pub struct OpcodeAccess {
+    /// The opcode access.
+    pub access: crate::Vm::OpcodeAccess,
+    /// The call depth the opcode was accessed
+    pub depth: u64,
+}
+
 /// An EVM inspector that handles calls to various cheatcodes, each with their own behavior.
 ///
 /// Cheatcodes can be called by contracts during execution to modify the VM environment, such as
@@ -152,6 +160,12 @@ pub struct Cheatcodes {
     /// depth. Once that call context has ended, the last vector is removed from the matrix and
     /// merged into the previous vector.
     pub recorded_account_diffs_stack: Option<Vec<Vec<AccountAccess>>>,
+
+    /// Recorded opcodes during the call.
+    /// This field stores a list of opcodes that were recorded during the call.
+    /// It is empty if no opcodes were recorded.
+    pub recorded_opcodes: Option<Vec<OpcodeAccess>>,
+
 
     /// Recorded logs
     pub recorded_logs: Option<Vec<crate::Vm::Log>>,
@@ -639,6 +653,14 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
         // Record writes with sstore (and sha3) if `StartMappingRecording` has been called
         if let Some(mapping_slots) = &mut self.mapping_slots {
             mapping::step(mapping_slots, interpreter);
+        }
+
+        // Record opcodes if `startOpcodeRecordingCall` has been called
+        if let Some(recorded_opcodes) = &mut self.recorded_opcodes {
+            let access = crate::Vm::OpcodeAccess {
+                opcode: interpreter.current_opcode(),
+            };
+            recorded_opcodes.push(OpcodeAccess{access, depth: data.journaled_state.depth()});
         }
     }
 
