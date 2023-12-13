@@ -1,5 +1,8 @@
 //! Cheatcode EVM [Inspector].
 
+mod opcode_utils;
+use opcode_utils::get_stack_inputs_for_opcode;
+
 use crate::{
     evm::{
         mapping::{self, MappingSlots},
@@ -98,8 +101,6 @@ pub struct AccountAccess {
 pub struct OpcodeAccess {
     /// The opcode access.
     pub access: crate::Vm::OpcodeAccess,
-    /// The call depth the opcode was accessed
-    pub depth: u64,
 }
 
 /// An EVM inspector that handles calls to various cheatcodes, each with their own behavior.
@@ -385,6 +386,22 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
             _ => {}
         }
 
+        // Record opcodes if `startOpcodeRecordingCall` has been called
+        if let Some(recorded_opcodes) = &mut self.recorded_opcodes {
+            let current_opcode = interpreter.current_opcode();
+            let stack_inputs = try_or_continue!(
+                get_stack_inputs_for_opcode(
+                    current_opcode, interpreter.stack(),
+                )
+            );
+            let access = crate::Vm::OpcodeAccess {
+                opcode: current_opcode,
+                stackInputs: stack_inputs,
+                depth: data.journaled_state.depth(),
+            };
+            recorded_opcodes.push(OpcodeAccess{access});
+        }
+
         // Record writes and reads if `record` has been called
         if let Some(storage_accesses) = &mut self.accesses {
             match interpreter.current_opcode() {
@@ -653,14 +670,6 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
         // Record writes with sstore (and sha3) if `StartMappingRecording` has been called
         if let Some(mapping_slots) = &mut self.mapping_slots {
             mapping::step(mapping_slots, interpreter);
-        }
-
-        // Record opcodes if `startOpcodeRecordingCall` has been called
-        if let Some(recorded_opcodes) = &mut self.recorded_opcodes {
-            let access = crate::Vm::OpcodeAccess {
-                opcode: interpreter.current_opcode(),
-            };
-            recorded_opcodes.push(OpcodeAccess{access, depth: data.journaled_state.depth()});
         }
     }
 

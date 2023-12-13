@@ -217,6 +217,12 @@ interface Vm {
     struct OpcodeAccess {
         /// The opcode that was accessed
         uint8 opcode;
+
+        /// The stack input of the opcode
+        uint256[] stackInputs;
+
+        /// The call depth the opcode was accessed
+        uint64 depth;
     }
 
     // ======== EVM ========
