@@ -213,7 +213,7 @@ interface Vm {
         bool reverted;
     }
 
-    /// The result of the `stopAndReturnOpcodeRecording` call
+    /// The result of the `stopAndReturnDebugTraceRecording` call
     struct DebugStep {
         /// The stack on the step of the run.
         uint256[] stack;

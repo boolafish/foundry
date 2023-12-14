@@ -2,7 +2,7 @@
 
 use revm::{
     interpreter::{
-        opcode, Stack, InstructionResult
+        opcode, Stack, InstructionResult, SharedMemory
     }
 };
 use alloy_primitives::{U256};
@@ -18,6 +18,95 @@ impl From<InstructionResult> for OpcodeError {
     }
 }
 
+
+pub(crate) fn get_memory_input_for_opcode(
+    opcode: u8,
+    stack_inputs: &[U256],
+    shared_memory: &SharedMemory
+) -> Vec<u8> {
+    match opcode {
+        0x51 => { // MLOAD
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + 32].to_vec()
+        },
+        0x52 => { // MSTORE
+            // This opcode does not return data, it only writes to memory
+            vec![]
+        },
+        0x53 => { // MSTORE8
+            // This opcode also does not return data, it only writes to memory
+            vec![]
+        },
+        0xA0 => { // LOG0
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xA1 => { // LOG1
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xA2 => { // LOG2
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xA3 => { // LOG3
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xA4 => { // LOG4
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xF0 => { // CREATE
+            let offset = stack_inputs[1].to::<u64>() as usize;
+            let len = stack_inputs[2].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xF1 => { // CALL
+            let ret_offset = stack_inputs[5].to::<u64>() as usize;
+            let ret_len = stack_inputs[6].to::<u64>() as usize;
+            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+        },
+        0xF2 => { // CALLCODE
+            let ret_offset = stack_inputs[5].to::<u64>() as usize;
+            let ret_len = stack_inputs[6].to::<u64>() as usize;
+            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+        },
+        0xF3 => { // RETURN
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xF4 => { // DELEGATECALL
+            let ret_offset = stack_inputs[4].to::<u64>() as usize;
+            let ret_len = stack_inputs[5].to::<u64>() as usize;
+            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+        },
+        0xF5 => { // CREATE2
+            let offset = stack_inputs[1].to::<u64>() as usize;
+            let len = stack_inputs[2].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+        0xFA => { // STATICCALL
+            let ret_offset = stack_inputs[4].to::<u64>() as usize;
+            let ret_len = stack_inputs[5].to::<u64>() as usize;
+            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+        },
+        0xFD => { // REVERT
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
+
+        // Other opcodes...
+        _ => vec![], // For unrecognized opcodes
+    }
+}
 
 pub(crate) fn get_stack_inputs_for_opcode(opcode: u8, stack: &Stack) -> Result<Vec<U256>, OpcodeError> {
     match opcode {

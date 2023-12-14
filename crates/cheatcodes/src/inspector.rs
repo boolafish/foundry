@@ -1,7 +1,7 @@
 //! Cheatcode EVM [Inspector].
 
 mod opcode_utils;
-use opcode_utils::get_stack_inputs_for_opcode;
+use opcode_utils::{get_stack_inputs_for_opcode, get_memory_input_for_opcode};
 
 use crate::{
     evm::{
@@ -660,15 +660,18 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
         if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
             let current_opcode = interpreter.current_opcode();
             let instruction_result = interpreter.instruction_result as u8;
-            // let stack_inputs = try_or_continue!(
-            //     get_stack_inputs_for_opcode(
-            //         current_opcode, interpreter.stack(),
-            //     )
-            // );
+            let stack_inputs = try_or_continue!(
+                get_stack_inputs_for_opcode(
+                    current_opcode, interpreter.stack(),
+                )
+            );
+            let mem_inputs = get_memory_input_for_opcode(
+                current_opcode, &stack_inputs, interpreter.shared_memory
+            );
             let step = crate::Vm::DebugStep {
                 opcode: current_opcode,
-                stack: interpreter.stack().data().clone(),
-                memoryData: interpreter.shared_memory.context_memory().to_vec(),
+                stack: stack_inputs,
+                memoryData: mem_inputs,
                 depth: data.journaled_state.depth(),
                 instructionResult: instruction_result // note: will set again in step_end
             };
