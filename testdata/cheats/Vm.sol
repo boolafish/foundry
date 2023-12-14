@@ -210,12 +210,12 @@ interface Vm {
     function startBroadcast() external;
     function startBroadcast(address signer) external;
     function startBroadcast(uint256 privateKey) external;
+    function startDebugTraceRecording() external;
     function startMappingRecording() external;
-    function startOpcodeRecording() external;
     function startPrank(address msgSender) external;
     function startPrank(address msgSender, address txOrigin) external;
     function startStateDiffRecording() external;
-    function stopAndReturnOpcodeRecording() external returns (OpcodeAccess[] memory opcodes);
+    function stopAndReturnDebugTraceRecording() external returns (DebugStep[] memory steps);
     function stopAndReturnStateDiff() external returns (AccountAccess[] memory accesses);
     function stopBroadcast() external;
     function stopMappingRecording() external;

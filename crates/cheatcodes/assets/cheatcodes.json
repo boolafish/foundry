@@ -4239,6 +4239,26 @@
     },
     {
       "func": {
+        "id": "startDebugTraceRecording",
+        "description": "Records the debug trace during the run.",
+        "declaration": "function startDebugTraceRecording() external;",
+        "visibility": "external",
+        "mutability": "",
+        "signature": "startDebugTraceRecording()",
+        "selector": "0x419c8832",
+        "selectorBytes": [
+          65,
+          156,
+          136,
+          50
+        ]
+      },
+      "group": "evm",
+      "status": "stable",
+      "safety": "safe"
+    },
+    {
+      "func": {
         "id": "startMappingRecording",
         "description": "Starts recording all map SSTOREs for later retrieval.",
         "declaration": "function startMappingRecording() external;",
@@ -4251,26 +4271,6 @@
           151,
           5,
           192
-        ]
-      },
-      "group": "evm",
-      "status": "stable",
-      "safety": "safe"
-    },
-    {
-      "func": {
-        "id": "startOpcodeRecording",
-        "description": "Records all opcodes during the run.",
-        "declaration": "function startOpcodeRecording() external;",
-        "visibility": "external",
-        "mutability": "",
-        "signature": "startOpcodeRecording()",
-        "selector": "0xa31271b1",
-        "selectorBytes": [
-          163,
-          18,
-          113,
-          177
         ]
       },
       "group": "evm",
@@ -4339,18 +4339,18 @@
     },
     {
       "func": {
-        "id": "stopAndReturnOpcodeRecording",
-        "description": "Returns the recorded opcodes during the run",
-        "declaration": "function stopAndReturnOpcodeRecording() external returns (OpcodeAccess[] memory opcodes);",
+        "id": "stopAndReturnDebugTraceRecording",
+        "description": "Returns the recorded debug trace during the run and stop recording.",
+        "declaration": "function stopAndReturnDebugTraceRecording() external returns (DebugStep[] memory steps);",
         "visibility": "external",
         "mutability": "",
-        "signature": "stopAndReturnOpcodeRecording()",
-        "selector": "0x1d3188f6",
+        "signature": "stopAndReturnDebugTraceRecording()",
+        "selector": "0xced398a2",
         "selectorBytes": [
-          29,
-          49,
-          136,
-          246
+          206,
+          211,
+          152,
+          162
         ]
       },
       "group": "evm",

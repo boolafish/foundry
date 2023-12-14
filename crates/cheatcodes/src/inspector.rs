@@ -98,9 +98,9 @@ pub struct AccountAccess {
 }
 
 #[derive(Debug, Clone)]
-pub struct OpcodeAccess {
-    /// The opcode access.
-    pub access: crate::Vm::OpcodeAccess,
+pub struct DebugStep {
+    /// The debug step
+    pub step: crate::Vm::DebugStep,
 }
 
 /// An EVM inspector that handles calls to various cheatcodes, each with their own behavior.
@@ -162,10 +162,10 @@ pub struct Cheatcodes {
     /// merged into the previous vector.
     pub recorded_account_diffs_stack: Option<Vec<Vec<AccountAccess>>>,
 
-    /// Recorded opcodes during the call.
-    /// This field stores a list of opcodes that were recorded during the call.
-    /// It is empty if no opcodes were recorded.
-    pub recorded_opcodes: Option<Vec<OpcodeAccess>>,
+    /// Recorded debug trace/steps during the call.
+    /// This field stores a debug trace that were recorded during the call.
+    /// It is empty if nothing were recorded.
+    pub recorded_debug_steps: Option<Vec<DebugStep>>,
 
 
     /// Recorded logs
@@ -384,22 +384,6 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
                 }
             }
             _ => {}
-        }
-
-        // Record opcodes if `startOpcodeRecordingCall` has been called
-        if let Some(recorded_opcodes) = &mut self.recorded_opcodes {
-            let current_opcode = interpreter.current_opcode();
-            let stack_inputs = try_or_continue!(
-                get_stack_inputs_for_opcode(
-                    current_opcode, interpreter.stack(),
-                )
-            );
-            let access = crate::Vm::OpcodeAccess {
-                opcode: current_opcode,
-                stackInputs: stack_inputs,
-                depth: data.journaled_state.depth(),
-            };
-            recorded_opcodes.push(OpcodeAccess{access});
         }
 
         // Record writes and reads if `record` has been called
@@ -670,6 +654,34 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
         // Record writes with sstore (and sha3) if `StartMappingRecording` has been called
         if let Some(mapping_slots) = &mut self.mapping_slots {
             mapping::step(mapping_slots, interpreter);
+        }
+
+        // Record opcodes if `startOpcodeRecordingCall` has been called
+        if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
+            let current_opcode = interpreter.current_opcode();
+            let instruction_result = interpreter.instruction_result as u8;
+            // let stack_inputs = try_or_continue!(
+            //     get_stack_inputs_for_opcode(
+            //         current_opcode, interpreter.stack(),
+            //     )
+            // );
+            let step = crate::Vm::DebugStep {
+                opcode: current_opcode,
+                stack: interpreter.stack().data().clone(),
+                memoryData: interpreter.shared_memory.context_memory().to_vec(),
+                depth: data.journaled_state.depth(),
+                instructionResult: instruction_result // note: will set again in step_end
+            };
+            recorded_debug_steps.push(DebugStep{step});
+        }
+    }
+
+    fn step_end(&mut self, interpreter: &mut Interpreter<'_>, data: &mut EVMData<'_, DB>) {
+        if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
+            if let Some(debug_step) = recorded_debug_steps.last_mut() {
+                let instruction_result = interpreter.instruction_result as u8;
+                debug_step.step.instructionResult = instruction_result;
+            }
         }
     }
 

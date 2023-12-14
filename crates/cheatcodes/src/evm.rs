@@ -356,24 +356,24 @@ impl Cheatcode for stopAndReturnStateDiffCall {
 }
 
 
-impl Cheatcode for startOpcodeRecordingCall {
+impl Cheatcode for startDebugTraceRecordingCall {
     fn apply(&self, state: &mut Cheatcodes) -> Result {
         let Self {} = self;
-        state.recorded_opcodes = Some(Default::default());
+        state.recorded_debug_steps = Some(Default::default());
         Ok(Default::default())
     }
 }
 
-impl Cheatcode for stopAndReturnOpcodeRecordingCall {
+impl Cheatcode for stopAndReturnDebugTraceRecordingCall {
     fn apply(&self, state: &mut Cheatcodes) -> Result {
         let Self {} = self;
         // Ok(Default::default())
         let res = state
-            .recorded_opcodes
+            .recorded_debug_steps
             .replace(Default::default())
             .unwrap_or_default()
             .into_iter()
-            .map(|record| record.access)
+            .map(|record| record.step)
             .collect::<Vec<_>>();
         Ok(res.abi_encode())
         // Ok(state.recorded_opcodes.replace(Default::default()).unwrap_or_default())

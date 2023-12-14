@@ -214,15 +214,18 @@ interface Vm {
     }
 
     /// The result of the `stopAndReturnOpcodeRecording` call
-    struct OpcodeAccess {
-        /// The opcode that was accessed
+    struct DebugStep {
+        /// The stack on the step of the run.
+        uint256[] stack;
+        /// The memory data on the step of the run.
+        uint8[] memoryData;
+        /// The opcode that was accessed.
         uint8 opcode;
-
-        /// The stack input of the opcode
-        uint256[] stackInputs;
-
-        /// The call depth the opcode was accessed
+        /// The call depth of the step.
         uint64 depth;
+        /// The instruction result.
+        /// see: https://github.com/bluealloy/revm/blob/5a47ae0d2bb0909cc70d1b8ae2b6fc721ab1ca7d/crates/interpreter/src/instruction_result.rs#L6-L50.
+        uint8 instructionResult;
     }
 
     // ======== EVM ========
@@ -247,15 +250,15 @@ interface Vm {
     #[cheatcode(group = Evm, safety = Safe)]
     function sign(uint256 privateKey, bytes32 digest) external pure returns (uint8 v, bytes32 r, bytes32 s);
 
-    // -------- Record Opcodes --------
+    // -------- Record Debug Traces --------
 
-    /// Records all opcodes during the run.
+    /// Records the debug trace during the run.
     #[cheatcode(group = Evm, safety = Safe)]
-    function startOpcodeRecording() external;
+    function startDebugTraceRecording() external;
 
-    /// Returns the recorded opcodes during the run
+    /// Returns the recorded debug trace during the run and stop recording.
     #[cheatcode(group = Evm, safety = Safe)]
-    function stopAndReturnOpcodeRecording() external returns (OpcodeAccess[] memory opcodes);
+    function stopAndReturnDebugTraceRecording() external returns (DebugStep[] memory steps);
 
 
     // -------- Record Storage --------
