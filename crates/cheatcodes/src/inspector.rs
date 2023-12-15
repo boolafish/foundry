@@ -329,6 +329,29 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
     fn step(&mut self, interpreter: &mut Interpreter<'_>, data: &mut EVMData<'_, DB>) {
         self.pc = interpreter.program_counter();
 
+        // Record opcodes if `startOpcodeRecordingCall` has been called
+        if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
+            let current_opcode = interpreter.current_opcode();
+            let instruction_result = interpreter.instruction_result as u8;
+            let stack_inputs = try_or_continue!(
+                get_stack_inputs_for_opcode(
+                    current_opcode, interpreter.stack(),
+                )
+            );
+            let mem_inputs = get_memory_input_for_opcode(
+                current_opcode, &stack_inputs, interpreter.shared_memory
+            );
+            let step = crate::Vm::DebugStep {
+                opcode: current_opcode,
+                stack: stack_inputs,
+                memoryData: mem_inputs,
+                depth: data.journaled_state.depth(),
+                instructionResult: instruction_result, // note: will set again in step_end,
+                contractAddr: interpreter.contract().address
+            };
+            recorded_debug_steps.push(DebugStep{step});
+        }
+
         // reset gas if gas metering is turned off
         match self.gas_metering {
             Some(None) => {
@@ -655,35 +678,15 @@ impl<DB: DatabaseExt> Inspector<DB> for Cheatcodes {
         if let Some(mapping_slots) = &mut self.mapping_slots {
             mapping::step(mapping_slots, interpreter);
         }
-
-        // Record opcodes if `startOpcodeRecordingCall` has been called
-        if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
-            let current_opcode = interpreter.current_opcode();
-            let instruction_result = interpreter.instruction_result as u8;
-            let stack_inputs = try_or_continue!(
-                get_stack_inputs_for_opcode(
-                    current_opcode, interpreter.stack(),
-                )
-            );
-            let mem_inputs = get_memory_input_for_opcode(
-                current_opcode, &stack_inputs, interpreter.shared_memory
-            );
-            let step = crate::Vm::DebugStep {
-                opcode: current_opcode,
-                stack: stack_inputs,
-                memoryData: mem_inputs,
-                depth: data.journaled_state.depth(),
-                instructionResult: instruction_result // note: will set again in step_end
-            };
-            recorded_debug_steps.push(DebugStep{step});
-        }
     }
 
     fn step_end(&mut self, interpreter: &mut Interpreter<'_>, data: &mut EVMData<'_, DB>) {
         if let Some(recorded_debug_steps) = &mut self.recorded_debug_steps {
             if let Some(debug_step) = recorded_debug_steps.last_mut() {
                 let instruction_result = interpreter.instruction_result as u8;
-                debug_step.step.instructionResult = instruction_result;
+                if instruction_result != 0 {
+                    debug_step.step.instructionResult = instruction_result;
+                }
             }
         }
     }

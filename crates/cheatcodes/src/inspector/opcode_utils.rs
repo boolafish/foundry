@@ -25,6 +25,11 @@ pub(crate) fn get_memory_input_for_opcode(
     shared_memory: &SharedMemory
 ) -> Vec<u8> {
     match opcode {
+        0x20 => { // KECCAK256 (SHA3)
+            let offset = stack_inputs[0].to::<u64>() as usize;
+            let len = stack_inputs[1].to::<u64>() as usize;
+            shared_memory.context_memory()[offset..offset + len].to_vec()
+        },
         0x51 => { // MLOAD
             let offset = stack_inputs[0].to::<u64>() as usize;
             shared_memory.context_memory()[offset..offset + 32].to_vec()
@@ -68,14 +73,14 @@ pub(crate) fn get_memory_input_for_opcode(
             shared_memory.context_memory()[offset..offset + len].to_vec()
         },
         0xF1 => { // CALL
-            let ret_offset = stack_inputs[5].to::<u64>() as usize;
-            let ret_len = stack_inputs[6].to::<u64>() as usize;
-            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+            let args_offset = stack_inputs[3].to::<u64>() as usize;
+            let args_len = stack_inputs[4].to::<u64>() as usize;
+            shared_memory.context_memory()[args_offset..args_offset + args_len].to_vec()
         },
         0xF2 => { // CALLCODE
-            let ret_offset = stack_inputs[5].to::<u64>() as usize;
-            let ret_len = stack_inputs[6].to::<u64>() as usize;
-            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+            let args_offset = stack_inputs[3].to::<u64>() as usize;
+            let args_len = stack_inputs[4].to::<u64>() as usize;
+            shared_memory.context_memory()[args_offset..args_offset + args_len].to_vec()
         },
         0xF3 => { // RETURN
             let offset = stack_inputs[0].to::<u64>() as usize;
@@ -83,9 +88,9 @@ pub(crate) fn get_memory_input_for_opcode(
             shared_memory.context_memory()[offset..offset + len].to_vec()
         },
         0xF4 => { // DELEGATECALL
-            let ret_offset = stack_inputs[4].to::<u64>() as usize;
-            let ret_len = stack_inputs[5].to::<u64>() as usize;
-            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+            let args_offset = stack_inputs[2].to::<u64>() as usize;
+            let args_len = stack_inputs[3].to::<u64>() as usize;
+            shared_memory.context_memory()[args_offset..args_offset + args_len].to_vec()
         },
         0xF5 => { // CREATE2
             let offset = stack_inputs[1].to::<u64>() as usize;
@@ -93,9 +98,9 @@ pub(crate) fn get_memory_input_for_opcode(
             shared_memory.context_memory()[offset..offset + len].to_vec()
         },
         0xFA => { // STATICCALL
-            let ret_offset = stack_inputs[4].to::<u64>() as usize;
-            let ret_len = stack_inputs[5].to::<u64>() as usize;
-            shared_memory.context_memory()[ret_offset..ret_offset + ret_len].to_vec()
+            let args_offset = stack_inputs[2].to::<u64>() as usize;
+            let args_len = stack_inputs[3].to::<u64>() as usize;
+            shared_memory.context_memory()[args_offset..args_offset + args_len].to_vec()
         },
         0xFD => { // REVERT
             let offset = stack_inputs[0].to::<u64>() as usize;
